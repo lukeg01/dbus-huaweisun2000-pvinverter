@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.python-version
+patch_*.py
+fix_run.py
+test_modbus.py
+override_config.py

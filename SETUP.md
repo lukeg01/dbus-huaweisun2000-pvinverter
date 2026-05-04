@@ -1,27 +1,27 @@
 # Setup Guide — Mac (Apple Silicon, clean macOS)
 
-Complete setup from a fresh macOS installation on Apple Silicon (M1/M2/M3/M4).
-Covers the three-component development environment:
+Full development environment for the Huawei SUN2000 Venus OS driver on Apple Silicon.
 
-1. **Modbus simulator** — `sun2000_sim.py` (port 5020)
-2. **Venus OS** — Docker container (port 8080 / 1883)
-3. **Venus OS driver** — runs inside the Docker container
+Three components run together:
 
-The `sun2000_tool.py` interactive CLI also works after step 3 alone
-(no Docker needed).
+| Component | Where |
+|---|---|
+| **Modbus simulator** | Mac — `sun2000_sim.py` on port 5020 |
+| **Venus OS** | Docker container (port 8080 web UI / port 1883 MQTT) |
+| **Driver** | Inside the Docker container, connecting to the simulator |
+
+`sun2000_tool.py` works without Docker — you only need steps 1–7.
 
 ---
 
 ## 1. Xcode Command Line Tools
 
-Required for `git`, `make`, and the C compiler that Homebrew and some Python
-packages need.
-
 ```bash
 xcode-select --install
 ```
 
-A dialog will appear. Click **Install** and wait (~5 minutes).
+A dialog will appear. Click **Install** and wait (~5 min).
+
 Verify:
 
 ```bash
@@ -33,14 +33,11 @@ xcode-select -p
 
 ## 2. Homebrew
 
-The standard macOS package manager.
-
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-After installation, follow the **"Next steps"** printed at the end —
-on Apple Silicon you must add Homebrew to your PATH:
+After installation, follow the **"Next steps"** printed at the end — add Homebrew to PATH:
 
 ```bash
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
@@ -58,14 +55,13 @@ brew --version
 
 ## 3. Python 3.11
 
-pymodbus 2.5.3 is compatible with Python 3.8–3.11.
-Python 3.11 is recommended.
+pymodbus 2.5.3 is compatible with Python 3.8–3.11. Python 3.11 is recommended.
 
 ```bash
 brew install python@3.11
 ```
 
-Add to PATH (if brew doesn't do it automatically):
+Add to PATH if Homebrew doesn't do it automatically:
 
 ```bash
 echo 'export PATH="/opt/homebrew/opt/python@3.11/bin:$PATH"' >> ~/.zprofile
@@ -79,69 +75,55 @@ python3.11 --version
 # Python 3.11.x
 ```
 
-> **Note:** macOS ships its own Python 3 at `/usr/bin/python3`, but it is
-> intentionally minimal and should not be used for development.
+> **Note:** macOS ships its own Python 3 at `/usr/bin/python3` but it is
+> intentionally minimal — don't use it for development.
 
 ---
 
-## 4. Git
-
-Git is included with Xcode Command Line Tools (step 1).
-Verify:
+## 4. Get the code
 
 ```bash
-git --version
-# git version 2.x.x
+git clone https://github.com/lukeg01/dbus-huaweisun2000-pvinverter.git
+cd dbus-huaweisun2000-pvinverter
 ```
 
----
-
-## 5. Get the code
-
-```bash
-mkdir -p ~/venus-dev
-cd ~/venus-dev
-git clone https://github.com/kcbam/dbus-huaweisun2000-pvinverter.git
-```
-
-Your working directory should now look like:
+Your working directory should look like:
 
 ```
-~/venus-dev/
-├── dbus-huaweisun2000-pvinverter/   ← driver + register library
-├── sun2000_sim.py                   ← Modbus simulator
-├── sun2000_tool.py                  ← interactive CLI tool
+dbus-huaweisun2000-pvinverter/
+├── dbus-huaweisun2000-pvinverter/   ← driver (installed on Venus OS)
+├── sun2000_tool.py
+├── sun2000_sim.py
 ├── setup_driver.sh
 ├── validate_driver.sh
-└── requirements.txt
+├── requirements.txt
+├── README.md
+└── SETUP.md
 ```
 
 ---
 
-## 6. Python virtual environment
-
-Create an isolated environment so project dependencies don't conflict with
-system packages.
+## 5. Python virtual environment
 
 ```bash
-cd ~/venus-dev
 python3.11 -m venv venv
 source venv/bin/activate
 ```
 
-Your prompt will change to show `(venv)`.
-You must run `source venv/bin/activate` again in every new terminal session
-before using the tools.
+Your prompt will show `(venv)`.
+
+> Run `source venv/bin/activate` again in every new terminal session before
+> using the tool or simulator.
 
 ---
 
-## 7. Install Python dependencies
+## 6. Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-This installs `pymodbus==2.5.3`. Verify:
+Verify:
 
 ```bash
 python -c "import pymodbus; print(pymodbus.__version__)"
@@ -150,15 +132,14 @@ python -c "import pymodbus; print(pymodbus.__version__)"
 
 ---
 
-## 8. Test the interactive tool (no Docker needed)
+## 7. Run the simulator and tool (no Docker needed)
 
-The `sun2000_tool.py` CLI and `sun2000_sim.py` simulator can run entirely on
-the Mac, without Docker.
+The tool and simulator work standalone — useful for testing the tool against
+a real or simulated inverter, without the full Venus OS environment.
 
-### Terminal A — start the simulator
+**Terminal A — simulator:**
 
 ```bash
-cd ~/venus-dev
 source venv/bin/activate
 python sun2000_sim.py
 ```
@@ -166,19 +147,18 @@ python sun2000_sim.py
 Expected output:
 
 ```
-2026-xx-xx INFO: Huawei SUN2000-5KTL-L1 simulator gestart op 0.0.0.0:5020
-2026-xx-xx INFO: V3 registermap | 4900W | 230V | 50Hz | 42C
+INFO: Huawei SUN2000-5KTL-L1 simulator gestart op 0.0.0.0:5020
+INFO: V3 registermap | 4900W | 230V | 50Hz | 42C
 ```
 
-### Terminal B — run the tool
+**Terminal B — tool:**
 
 ```bash
-cd ~/venus-dev
 source venv/bin/activate
 python sun2000_tool.py
 ```
 
-At the connection prompt use:
+At the connection prompt:
 
 | Field | Value |
 |---|---|
@@ -187,22 +167,20 @@ At the connection prompt use:
 | Unit ID | `0` |
 | Version | `V3` |
 
-For a real inverter, replace `127.0.0.1` / `5020` with the inverter's IP
-address and Modbus port (default `6607` for Wi-Fi dongle, `502` for direct
-Ethernet).
+Choose **option 1** — you should see all 115 registers with no errors.
 
 ---
 
-## 9. Docker Desktop (for full Venus OS integration test)
+## 8. Docker Desktop
 
-Required only to run the Venus OS environment and test the driver against a
-real D-Bus / MQTT stack.
+Required for the Venus OS container.
 
-1. Download **Docker Desktop for Mac (Apple Silicon)**
-   from <https://www.docker.com/products/docker-desktop/>
+1. Download **Docker Desktop for Mac (Apple Silicon)** from
+   <https://www.docker.com/products/docker-desktop/>
 2. Open the `.dmg`, drag Docker to Applications, launch it.
-3. Wait for Docker to finish starting (whale icon in menu bar becomes steady).
-4. Verify:
+3. Wait until the whale icon in the menu bar is steady.
+
+Verify:
 
 ```bash
 docker --version
@@ -211,7 +189,7 @@ docker --version
 
 ---
 
-## 10. Venus OS Docker environment
+## 9. Venus OS Docker environment
 
 ```bash
 cd ~
@@ -220,8 +198,7 @@ cd venus-docker
 ./run.sh -s z
 ```
 
-`-s z` loads the "original demo mode recordings" simulation which provides a
-minimal but functional Venus OS D-Bus environment.
+`-s z` loads the demo simulation (minimal functional Venus OS D-Bus stack).
 
 Services started:
 
@@ -229,118 +206,123 @@ Services started:
 |---|---|
 | Venus OS web UI | http://localhost:8080 |
 | MQTT broker | localhost:1883 |
-| D-Bus | inside the container |
 
 Wait until the web UI loads before continuing.
 
 ---
 
-## 11. mosquitto (MQTT client — optional)
+## 10. Deploy and start the driver
 
-Used by `validate_driver.sh` to verify MQTT data.
+From the `dbus-huaweisun2000-pvinverter/` repo root:
 
 ```bash
-brew install mosquitto
+source venv/bin/activate
+python sun2000_sim.py &   # start simulator in background if not already running
+./setup_driver.sh
 ```
 
-Test the MQTT broker (Venus OS Docker must be running):
+`setup_driver.sh` does:
+- Installs pymodbus inside the container
+- Copies the driver into `/data/dbus-huaweisun2000-pvinverter/`
+- Configures D-Bus settings (host `host.docker.internal`, port `5020`, unit `0`)
+- Starts the driver process
 
-```bash
-mosquitto_sub -h localhost -p 1883 -t "N/#" -v -C 5
+Expected output ends with:
+
+```
+>>> Static data obtained: Model=SUN2000-5KTL-L1  SN=HV2340123456
+>>> status changed to On-grid
+com.victronenergy.pvinverter.sun2000
 ```
 
 ---
 
-## 12. Deploy and validate the driver
-
-With the simulator (step 8) and Venus OS Docker (step 10) both running:
+## 11. Validate
 
 ```bash
-~/venus-dev/setup_driver.sh
+./validate_driver.sh
 ```
 
-This will:
-- Install pymodbus inside the Docker container
-- Copy the driver files into the container
-- Configure Modbus connection settings on D-Bus
-- Start the driver process
+This checks:
+1. Driver process is running
+2. Driver logs show inverter data
+3. D-Bus service `com.victronenergy.pvinverter.sun2000` is registered
+4. Modbus connection from container → simulator works
+5. MQTT topics publishing live values
 
-Then validate:
-
-```bash
-~/venus-dev/validate_driver.sh
-```
-
-Expected output:
-
-```
---- 1. Driver process ---
-OK: driver draait
-
---- 2. Driver logs ---
-INFO - Static device data: {'SN': 'HV2340123456', 'ModelID': 344.0, ...}
-
---- 3. D-Bus registratie ---
-OK: "com.victronenergy.pvinverter.sun2000"
-
---- 4. Modbus verbinding vanuit container ---
-OK: ActivePower = 4900 W
-OK: PhaseAVoltage = 230.0 V
-OK: DeviceStatus = 0x200
-```
+All six checks should show **OK**.
 
 ---
 
-## Summary — what runs where
+## 12. Monitor MQTT data
 
-```
-Mac (your machine)
-├── Terminal A:  python sun2000_sim.py          port 5020
-├── Terminal B:  python sun2000_tool.py         (connects to 127.0.0.1:5020)
-│
-└── Docker container (Venus OS)
-    ├── D-Bus, MQTT broker                      ports 8080, 1883
-    └── dbus-huaweisun2000-pvinverter           connects to host.docker.internal:5020
+```bash
+mosquitto_sub -h localhost -p 1883 -t 'N/+/pvinverter/#' -v
 ```
 
-The driver inside Docker connects to the simulator on the Mac via the
-`host.docker.internal` hostname that Docker Desktop provides automatically.
+You should see live updates for `/Ac/Power`, `/Ac/L1/Voltage`, `/StatusCode`, etc.
+The `UpdateIndex` topic increments every ~5 seconds.
+
+---
+
+## Connecting to a real SUN2000 inverter
+
+To test the tool against a physical inverter instead of the simulator:
+
+### Enable Modbus TCP
+
+Open the **Huawei FusionSolar** or **SUN2000** app:
+
+> **Settings → Communication → Modbus TCP** → Enable
+
+Some firmware versions label this **Settings → Communication parameters**.
+
+### Connection parameters
+
+| Parameter | Value | Notes |
+|---|---|---|
+| Host | inverter IP | e.g. `192.168.1.100` |
+| Port | `6607` | SDongle (WLAN-FE / 4G) — most common |
+| Port | `502` | Direct Ethernet on some models |
+| Unit ID | `0` | Try `0` first |
+| Unit ID | `1` | Use if unit `0` returns errors |
+| Version | `V3` | Default; models post-2019 |
+| Version | `V2` | Older models via SmartLogger |
+
+> **One connection at a time:** some SDongle firmware versions reject a second
+> TCP connection while the FusionSolar app is active. Close the app first.
+
+```bash
+python sun2000_tool.py
+# Enter inverter IP, port 6607, unit 0, V3
+# Option 1 — read all registers
+```
 
 ---
 
 ## Troubleshooting
 
 **`xcode-select --install` says "already installed"**
-You're good — CLT is present.
+CLT is present — proceed.
 
 **`brew: command not found` after installation**
-Run the `eval` line from step 2 again and restart your terminal.
+Re-run the `eval` line from step 2 and restart your terminal.
 
 **`python3.11: command not found`**
-Check that `/opt/homebrew/opt/python@3.11/bin` is in your `$PATH`:
 ```bash
 echo $PATH | tr ':' '\n' | grep python
 ```
 
-**`pip install -r requirements.txt` fails with build errors**
-Make sure Xcode CLT is installed (step 1), then retry.
+**Docker container not found by `setup_driver.sh`**
+Make sure Venus OS Docker is running (`docker ps` should show one container).
 
-**`python sun2000_sim.py` — "Address already in use"**
-Another process is using port 5020. Find and stop it:
-```bash
-lsof -i :5020
-kill <PID>
-```
+**Driver shows "FAILED" on Modbus connect**
+- Check the simulator is running: `lsof -i :5020`
+- The container reaches the Mac via `host.docker.internal` — verify with:
+  `docker exec $(docker ps -q) python3 -c "import socket; socket.create_connection(('host.docker.internal', 5020))"`
 
-**`sun2000_tool.py` — "FAILED" on connect**
-- Check the simulator is running (`lsof -i :5020`)
-- Check the IP, port, and unit ID
-- For a real inverter: verify the inverter's Modbus TCP is enabled in the
-  Huawei app (Settings → Communication → Modbus TCP)
+**All registers return errors on V3**
+Try version **V2** — the inverter may use the older register map.
 
-**Docker: "Cannot connect to the Docker daemon"**
-Docker Desktop is not running. Open it from Applications and wait for the
-whale icon to become steady in the menu bar.
-
-**`setup_driver.sh` fails — "no such container"**
-The Venus OS Docker container is not running. Execute step 10 first.
+**`/Ac/PowerLimit` not appearing on D-Bus**
+Redeploy with `./setup_driver.sh` — the D-Bus path was added in v1.7.0.

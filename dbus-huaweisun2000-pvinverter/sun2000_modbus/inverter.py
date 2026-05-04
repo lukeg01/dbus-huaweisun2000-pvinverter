@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+# Please adhere to flake8 --ignore E501,E402
+
+import time
+
+from pymodbus.client.sync import ModbusTcpClient
+from pymodbus.exceptions import ModbusIOException, ConnectionException
+
+from . import datatypes
+
+
+class Sun2000:
+    def __init__(self, logger, host, port=502, timeout=5, wait=2, modbus_unit=0):  # some models need modbus_unit=1
+        self.logger = logger
+        self.wait = wait
+        self.modbus_unit = modbus_unit
+        self.inverter = ModbusTcpClient(host, port, timeout=timeout)
+
+    def connect(self):
+        if not self.isConnected():
+            self.inverter.connect()
+            time.sleep(self.wait)
+            if self.isConnected():
+                self.logger.info('Successfully connected to inverter')
+                return True
+            else:
+                self.logger.error('Connection to inverter failed')
+                return False
+        else:
+            return True
+
+    def disconnect(self):
+        """Close the underlying tcp socket"""
+        # Some Sun2000 models with the SDongle WLAN-FE require the TCP connection to be closed
+        # as soon as possible. Leaving the TCP connection open for an extended time may cause
+        # dongle reboots and/or FusionSolar portal updates to be delayed or even paused.
+        self.inverter.close()
+
+    def isConnected(self):
+        """Check if underlying tcp socket is open"""
+        return self.inverter.is_socket_open()
+
+    @property
+    def connected(self):
+        return self.isConnected()
+
+    def read_raw_value(self, register):
+        if not self.isConnected():
+            raise ValueError('Inverter is not connected')
+
+        try:
+            register_value = self.inverter.read_holding_registers(register.value.address, register.value.quantity, unit=self.modbus_unit)
+            if isinstance(register_value, ModbusIOException):
+                self.logger.error("Inverter unit did not respond")
+                raise register_value
+        except ConnectionException:
+            self.logger.error("A connection error occurred")
+            raise
+
+        return datatypes.decode(register_value.encode()[1:], register.value.data_type)
+
+    def read(self, register):
+        raw_value = self.read_raw_value(register)
+
+        if register.value.gain is None:
+            return raw_value
+        else:
+            return raw_value / register.value.gain
+
+    def read_formatted(self, register, use_locale=False):
+        value = self.read(register)
+
+        if register.value.unit is not None:
+            if use_locale:
+                return f'{value:n} {register.value.unit}'
+            else:
+                return f'{value} {register.value.unit}'
+        elif register.value.mapping is not None:
+            return register.value.mapping.get(value, f'undefined ({value})')
+        else:
+            return value
+
+    def read_range(self, start_address, quantity=0, end_address=0):
+        if quantity == 0 and end_address == 0:
+            raise ValueError("Either parameter quantity or end_address is required and must be greater than 0")
+        if quantity != 0 and end_address != 0:
+            raise ValueError("Only one parameter quantity or end_address should be defined")
+        if end_address != 0 and end_address <= start_address:
+            raise ValueError("end_address must be greater than start_address")
+
+        if not self.isConnected():
+            raise ValueError('Inverter is not connected')
+
+        if end_address != 0:
+            quantity = end_address - start_address + 1
+        try:
+            register_range_value = self.inverter.read_holding_registers(start_address, quantity, unit=self.modbus_unit)
+            if isinstance(register_range_value, ModbusIOException):
+                self.logger.error("Inverter unit did not respond")
+                raise register_range_value
+        except ConnectionException:
+            self.logger.error("A connection error occurred")
+            raise
+
+        return datatypes.decode(register_range_value.encode()[1:], datatypes.DataType.MULTIDATA)

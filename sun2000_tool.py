@@ -17,14 +17,18 @@ import os
 import logging
 
 # ---------------------------------------------------------------------------
-# Locate the driver package that lives next to this script
+# Locate sun2000_modbus — either local (standalone repo) or via driver dir
 # ---------------------------------------------------------------------------
-_DRIVER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "dbus-huaweisun2000-pvinverter")
-if not os.path.isdir(_DRIVER_DIR):
-    sys.exit(f"ERROR: driver directory not found at {_DRIVER_DIR}")
-if _DRIVER_DIR not in sys.path:
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_DRIVER_DIR = os.path.join(_SCRIPT_DIR, "dbus-huaweisun2000-pvinverter")
+
+if os.path.isdir(os.path.join(_SCRIPT_DIR, "sun2000_modbus")):
+    pass  # package is local — Python finds it automatically
+elif os.path.isdir(_DRIVER_DIR):
     sys.path.insert(0, _DRIVER_DIR)
+else:
+    sys.exit("ERROR: sun2000_modbus package not found.\n"
+             "Run from the repo directory or alongside dbus-huaweisun2000-pvinverter/")
 
 from sun2000_modbus import inverter as inv_module          # noqa: E402
 from sun2000_modbus import inverter_registers              # noqa: E402
