@@ -38,10 +38,15 @@ Victron Cerbo GX and other Venus OS devices.
 ## Install on a real Cerbo GX / Venus OS device
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/lukeg01/dbus-huaweisun2000-pvinverter/main/dbus-huaweisun2000-pvinverter/setup/install_or_update.sh | bash
+# Download and run the installer
+wget https://raw.githubusercontent.com/lukeg01/dbus-huaweisun2000-pvinverter/main/dbus-huaweisun2000-pvinverter/setup/install_or_update.sh
+bash install_or_update.sh
+
+# For development version:
+bash install_or_update.sh dev
 ```
 
-The installer will prompt you to configure the driver interactively.
+The installer will prompt you to configure the driver interactively after installation.
 
 ### Configuration
 

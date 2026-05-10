@@ -31,13 +31,14 @@ To further use the data, the mqtt broker from Venus OS can be used.
 2. Download and run the installation / update script:
 
    ```bash
-   wget -qO- https://raw.githubusercontent.com/lukeg01/dbus-huaweisun2000-pvinverter/main/dbus-huaweisun2000-pvinverter/setup/install_or_update.sh | bash
+   wget https://raw.githubusercontent.com/lukeg01/dbus-huaweisun2000-pvinverter/main/dbus-huaweisun2000-pvinverter/setup/install_or_update.sh
+   bash install_or_update.sh
    ```
 
    This will download the latest release and install it. If you want to install the development version, use:
 
    ```bash
-   wget -qO- https://raw.githubusercontent.com/lukeg01/dbus-huaweisun2000-pvinverter/main/dbus-huaweisun2000-pvinverter/setup/install_or_update.sh | bash -s dev
+   bash install_or_update.sh dev
    ```
 
 3. Configure the driver
