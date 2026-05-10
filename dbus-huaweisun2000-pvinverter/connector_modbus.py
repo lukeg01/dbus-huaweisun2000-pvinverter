@@ -49,11 +49,12 @@ alert1Readable = {
 
 
 class ModbusDataCollector2000:
-    def __init__(self, logger, modbus_version, host='192.168.200.1', port=6607, modbus_unit=0, pcf_override=0.995, system_type=0):
+    def __init__(self, logger, modbus_version, host='192.168.200.1', port=6607, modbus_unit=0, pcf_override=0.995, system_type=0, single_phase_position=1):
         self.invSun2000 = inverter.Sun2000(logger=logger, host=host, port=port, modbus_unit=modbus_unit, timeout=20)
         self.logger = logger
         self.pcf_override = pcf_override
         self.system_type = system_type
+        self.single_phase_position = single_phase_position
         self.this_inverter = inverter_registers.InverterRegister.get(modbus_version)
 
     def getInverterData(self):
@@ -79,10 +80,11 @@ class ModbusDataCollector2000:
             }
         else:
             # Single phase inverter
+            phase = f'L{self.single_phase_position}'
             dbuspath = {
                 '/Ac/Power': {'initial': 0, "sun2000": self.this_inverter.ActivePower},
-                '/Ac/L1/Current': {'initial': 0, "sun2000": self.this_inverter.PhaseACurrent},
-                '/Ac/L1/Voltage': {'initial': 0, "sun2000": self.this_inverter.LineVoltageBetweenPhasesAAndB},
+                f'/Ac/{phase}/Current': {'initial': 0, "sun2000": self.this_inverter.PhaseACurrent},
+                f'/Ac/{phase}/Voltage': {'initial': 0, "sun2000": self.this_inverter.LineVoltageBetweenPhasesAAndB},
                 '/Dc/Power': {'initial': 0, "sun2000": self.this_inverter.InputPower},
                 '/Ac/MaxPower': {'initial': 0, "sun2000": self.this_inverter.MaximumActivePower},
             }
@@ -142,17 +144,18 @@ class ModbusDataCollector2000:
 
         freq = self.invSun2000.read(self.this_inverter.GridFrequency)
 
-        # There is no Modbus register for the phases
-        data['/Ac/L1/Energy/Forward'] = round(energy_forward / 3.0, 2)
-        data['/Ac/L1/Frequency'] = freq
-
         if self.system_type == 0:
-            data['/Ac/L1/Power'] = float(data['/Ac/Power'])
-
-        if self.system_type == 1:
-            # Three phase inverter
+            # Single phase inverter
+            phase = f'L{self.single_phase_position}'
+            data[f'/Ac/{phase}/Energy/Forward'] = energy_forward
+            data[f'/Ac/{phase}/Frequency'] = freq
+            data[f'/Ac/{phase}/Power'] = float(data['/Ac/Power'])
+        else:
+            # Three phase inverter - there is no Modbus register for the phases
+            data['/Ac/L1/Energy/Forward'] = round(energy_forward / 3.0, 2)
             data['/Ac/L2/Energy/Forward'] = round(energy_forward / 3.0, 2)
             data['/Ac/L3/Energy/Forward'] = round(energy_forward / 3.0, 2)
+            data['/Ac/L1/Frequency'] = freq
             data['/Ac/L2/Frequency'] = freq
             data['/Ac/L3/Frequency'] = freq
             data['/Ac/L1/Power'] = cosphi * float(data['/Ac/L1/Voltage']) * float(data['/Ac/L1/Current'])

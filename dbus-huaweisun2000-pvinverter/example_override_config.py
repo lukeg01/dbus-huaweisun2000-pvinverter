@@ -30,3 +30,6 @@ class ConfigOverride:
         settings["use_meter"] = 0
         # 0 = Single Phase, 1 = Three Phase
         settings["system_type"] = 0
+        # For single-phase inverters: which phase to report on (1 = L1, 2 = L2, 3 = L3)
+        # Useful when inverter is physically connected to L2 or L3 instead of L1
+        settings["single_phase_position"] = 1

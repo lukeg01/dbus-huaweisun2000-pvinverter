@@ -200,7 +200,7 @@ def main():
     logger.info(f"Settings: ModbusPort '{settings.get('modbus_port')}', ModbusUnit '{settings.get('modbus_unit')}'")
     logger.info(f"Settings: CustomName '{settings.get('custom_name')}', Position '{settings.get('position')}'")
     logger.info(f"Settings: UpdateTimeMS '{settings.get('update_time_ms')}', PCFOverride '{settings.get('pcf_override')}'")
-    logger.info(f"Settings: SystemType '{settings.get('system_type')}'")
+    logger.info(f"Settings: SystemType '{settings.get('system_type')}', SinglePhasePosition '{settings.get('single_phase_position')}'")
 
     while "255" in settings.get("modbus_host"):
         # This catches the initial setting and allows the service to be installed without configuring it first
@@ -215,7 +215,8 @@ def main():
                                      port=settings.get("modbus_port"),
                                      modbus_unit=settings.get("modbus_unit"),
                                      pcf_override=settings.get("pcf_override"),
-                                     system_type=settings.get("system_type"))
+                                     system_type=settings.get("system_type"),
+                                     single_phase_position=settings.get("single_phase_position"))
 
     while True:
         staticdata = modbus.getStaticData()
