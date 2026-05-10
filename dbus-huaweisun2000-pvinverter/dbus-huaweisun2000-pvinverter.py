@@ -200,7 +200,7 @@ def main():
     logger.info(f"Settings: ModbusPort '{settings.get('modbus_port')}', ModbusUnit '{settings.get('modbus_unit')}'")
     logger.info(f"Settings: CustomName '{settings.get('custom_name')}', Position '{settings.get('position')}'")
     logger.info(f"Settings: UpdateTimeMS '{settings.get('update_time_ms')}', PCFOverride '{settings.get('pcf_override')}'")
-    logger.info(f"Settings: SystemType '{settings.get('system_type')}'")
+    logger.info(f"Settings: SystemType '{settings.get('system_type')}', SinglePhasePosition '{settings.get('single_phase_position')}'")
 
     while "255" in settings.get("modbus_host"):
         # This catches the initial setting and allows the service to be installed without configuring it first
@@ -215,7 +215,8 @@ def main():
                                      port=settings.get("modbus_port"),
                                      modbus_unit=settings.get("modbus_unit"),
                                      pcf_override=settings.get("pcf_override"),
-                                     system_type=settings.get("system_type"))
+                                     system_type=settings.get("system_type"),
+                                     single_phase_position=settings.get("single_phase_position"))
 
     while True:
         staticdata = modbus.getStaticData()
@@ -319,15 +320,17 @@ def main():
                 '/Ac/L3/Power': {'initial': 0, 'textformat': _w},
             }
         else:
+            # Single phase inverter - use configured phase position
+            phase = f'L{settings.get("single_phase_position")}'
             dbuspath_inv = {
                 '/Ac/Power': {'initial': 0, 'textformat': _w},
                 '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh},
                 #
-                '/Ac/L1/Power': {'initial': 0, 'textformat': _w},
-                '/Ac/L1/Current': {'initial': 0, 'textformat': _a},
-                '/Ac/L1/Voltage': {'initial': 0, 'textformat': _v},
-                '/Ac/L1/Frequency': {'initial': None, 'textformat': _hz},
-                '/Ac/L1/Energy/Forward': {'initial': None, 'textformat': _kwh},
+                f'/Ac/{phase}/Power': {'initial': 0, 'textformat': _w},
+                f'/Ac/{phase}/Current': {'initial': 0, 'textformat': _a},
+                f'/Ac/{phase}/Voltage': {'initial': 0, 'textformat': _v},
+                f'/Ac/{phase}/Frequency': {'initial': None, 'textformat': _hz},
+                f'/Ac/{phase}/Energy/Forward': {'initial': None, 'textformat': _kwh},
                 #
                 '/Ac/MaxPower': {'initial': 20000, 'textformat': _w},
                 '/Ac/PowerLimit': {'initial': None, 'textformat': _w, 'onchangecallback': _handle_power_limit},

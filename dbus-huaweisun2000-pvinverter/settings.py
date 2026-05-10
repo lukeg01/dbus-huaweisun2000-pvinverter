@@ -39,6 +39,7 @@ class HuaweiSUN2000Settings(object):
             "vrm_instance": ["/Settings/Devices/HuaweiSUN2000/ClassAndVrmInstance", "pvinverter:1", "", "", 0],
             "use_meter": ["/Settings/HuaweiSUN2000/UseMeter", 0, 0, 2, 0],
             "system_type": ["/Settings/HuaweiSUN2000/SystemType", 0, 0, 1, 0],
+            "single_phase_position": ["/Settings/HuaweiSUN2000/SinglePhasePosition", 1, 1, 3, 0],
         }
         self.dbus_conn = self._dbusconnection()
         self.settings = SettingsDevice(bus=self.dbus_conn, supportedSettings=supported_settings, eventCallback=self._handle_changed_setting)
