@@ -40,11 +40,39 @@ To further use the data, the mqtt broker from Venus OS can be used.
    wget -qO- https://raw.githubusercontent.com/lukeg01/dbus-huaweisun2000-pvinverter/main/dbus-huaweisun2000-pvinverter/setup/install_or_update.sh | bash -s dev
    ```
 
-3. Edit the settings in the *V1* Remote Console under 'Settings -> PV inverters -> Huawei SUN2000'
+3. Configure the driver
 
-   The driver will restart automatically, upon changes to the settings.
+   **Option A: Interactive configuration (recommended)**
+   
+   The installer will prompt you to configure the driver. Or run anytime:
+   
+   ```bash
+   /data/dbus-huaweisun2000-pvinverter/configure.sh
+   ```
+   
+   This will interactively ask for:
+   - Modbus host IP address
+   - Modbus port (6607 for SDongle, 502 for Ethernet)
+   - Modbus unit ID (usually 0)
+   - Register version (V3 for modern inverters)
+   - System type (single-phase or three-phase)
+   - Single-phase position (L1/L2/L3)
 
-   If you can't change the settings via the GUI, you can override the settings via a config file by creating a file called `override_config.py`. Copy the `example_override_config.py` to `override_config.py` and adjust the values as needed. Note that this will override the settings in the GUI at any time and changing settings in the GUI will not have any effect.
+   **Option B: Manual D-Bus configuration**
+   
+   ```bash
+   dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusHost SetValue "192.168.1.100"
+   dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusPort SetValue 6607
+   dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusUnit SetValue 0
+   dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusVersion SetValue "V3"
+   dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/SystemType SetValue 0
+   dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/SinglePhasePosition SetValue 1
+   /data/dbus-huaweisun2000-pvinverter/restart.sh
+   ```
+
+   **Option C: Configuration file (for advanced users)**
+   
+   Create a file called `override_config.py`. Copy the `example_override_config.py` to `override_config.py` and adjust the values as needed. Note that this will override all other settings.
 
 ## Debugging
 
