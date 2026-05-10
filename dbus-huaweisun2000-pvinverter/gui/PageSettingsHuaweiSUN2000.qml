@@ -98,5 +98,16 @@ MbPage {
 				MbOption { description: qsTr("Three-phase"); value: 1 }
 			]
 		}
+
+		MbItemOptions {
+			description: qsTr("Single-phase position")
+			bind: Utils.path(settings, "/SinglePhasePosition")
+			possibleValues: [
+				MbOption { description: qsTr("L1"); value: 1 },
+				MbOption { description: qsTr("L2"); value: 2 },
+				MbOption { description: qsTr("L3"); value: 3 }
+			]
+			show: userHasWriteAccess
+		}
 	}
 }
