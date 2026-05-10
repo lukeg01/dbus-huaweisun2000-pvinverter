@@ -41,11 +41,27 @@ Victron Cerbo GX and other Venus OS devices.
 wget -qO- https://raw.githubusercontent.com/lukeg01/dbus-huaweisun2000-pvinverter/main/dbus-huaweisun2000-pvinverter/setup/install_or_update.sh | bash
 ```
 
-Configure via the Remote Console: **Settings → PV inverters → Huawei SUN2000**
-(set Modbus host, port, unit ID, register version).
+The installer will prompt you to configure the driver interactively.
 
-For manual settings override create `override_config.py` in the driver directory
-(copy from `example_override_config.py`).
+### Configuration
+
+**Interactive configuration (recommended):**
+```bash
+/data/dbus-huaweisun2000-pvinverter/configure.sh
+```
+
+**Manual D-Bus commands:**
+```bash
+dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusHost SetValue "192.168.1.100"
+dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusPort SetValue 6607
+dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusUnit SetValue 0
+dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/ModbusVersion SetValue "V3"
+dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/SystemType SetValue 0
+dbus -y com.victronenergy.settings /Settings/HuaweiSUN2000/SinglePhasePosition SetValue 1
+/data/dbus-huaweisun2000-pvinverter/restart.sh
+```
+
+**Advanced:** Create `override_config.py` from `example_override_config.py`.
 
 ---
 

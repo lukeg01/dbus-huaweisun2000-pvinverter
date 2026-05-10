@@ -46,3 +46,28 @@ svc -t /service/gui
 
 # We'll restart the logger as we might have changed the run file
 svc -t /service/$SERVICE_NAME/log
+
+# Make configure script executable
+chmod +x $SCRIPT_DIR/configure.sh
+
+# Offer interactive configuration
+echo ""
+echo "=========================================="
+echo "Driver installed successfully!"
+echo "=========================================="
+echo ""
+echo "Would you like to configure the driver now?"
+echo "You can also configure later by running:"
+echo "  $SCRIPT_DIR/configure.sh"
+echo ""
+read -p "Configure now? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    $SCRIPT_DIR/configure.sh
+else
+    echo ""
+    echo "Driver installed but not configured."
+    echo "Run the configuration script when ready:"
+    echo "  $SCRIPT_DIR/configure.sh"
+    echo ""
+fi

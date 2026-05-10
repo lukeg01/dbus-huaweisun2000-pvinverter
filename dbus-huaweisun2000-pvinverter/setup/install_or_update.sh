@@ -32,6 +32,8 @@ fi
 rm -f ${TMP_FILE}
 
 chmod a+x /data/dbus-huaweisun2000-pvinverter/install.sh
+chmod a+x /data/dbus-huaweisun2000-pvinverter/configure.sh
 
 /data/dbus-huaweisun2000-pvinverter/install.sh
-/data/dbus-huaweisun2000-pvinverter/restart.sh
+# Note: install.sh will call configure.sh interactively if user wants to configure now
+# Otherwise, the driver will start with default settings (needs manual configuration)
