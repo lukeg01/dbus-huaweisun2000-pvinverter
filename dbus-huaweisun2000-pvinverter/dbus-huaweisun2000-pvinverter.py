@@ -320,15 +320,17 @@ def main():
                 '/Ac/L3/Power': {'initial': 0, 'textformat': _w},
             }
         else:
+            # Single phase inverter - use configured phase position
+            phase = f'L{settings.get("single_phase_position")}'
             dbuspath_inv = {
                 '/Ac/Power': {'initial': 0, 'textformat': _w},
                 '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh},
                 #
-                '/Ac/L1/Power': {'initial': 0, 'textformat': _w},
-                '/Ac/L1/Current': {'initial': 0, 'textformat': _a},
-                '/Ac/L1/Voltage': {'initial': 0, 'textformat': _v},
-                '/Ac/L1/Frequency': {'initial': None, 'textformat': _hz},
-                '/Ac/L1/Energy/Forward': {'initial': None, 'textformat': _kwh},
+                f'/Ac/{phase}/Power': {'initial': 0, 'textformat': _w},
+                f'/Ac/{phase}/Current': {'initial': 0, 'textformat': _a},
+                f'/Ac/{phase}/Voltage': {'initial': 0, 'textformat': _v},
+                f'/Ac/{phase}/Frequency': {'initial': None, 'textformat': _hz},
+                f'/Ac/{phase}/Energy/Forward': {'initial': None, 'textformat': _kwh},
                 #
                 '/Ac/MaxPower': {'initial': 20000, 'textformat': _w},
                 '/Ac/PowerLimit': {'initial': None, 'textformat': _w, 'onchangecallback': _handle_power_limit},
